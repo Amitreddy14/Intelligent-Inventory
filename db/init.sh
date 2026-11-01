@@ -14,7 +14,7 @@ if [ "$DONE" = "1" ]; then
 fi
 
 echo "Seeding InventoryDB. The sales generation step takes about 1 minute..."
-for f in /scripts/0*.sql; do
+for f in /scripts/[0-9]*.sql; do
   echo ">> Running $(basename "$f")"
   run -i "$f"
 done

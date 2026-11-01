@@ -1,5 +1,5 @@
 -- 06_verify.sql
--- Sanity checks printed at the end of setup, then the SetupInfo marker that tells init.sh the seed is complete.
+-- Sanity checks for the Phase 1 data. (The "setup complete" marker is created by 99_ready.sql.)
 
 USE InventoryDB;
 GO
@@ -35,13 +35,4 @@ SELECT COUNT(*) AS StockedItems,
        SUM(CASE WHEN OnHand <= ReorderPoint THEN 1 ELSE 0 END) AS AtOrBelowReorderPoint,
        SUM(CASE WHEN OnHand = 0 THEN 1 ELSE 0 END)             AS OutOfStock
 FROM dbo.Inventory;
-GO
-
-CREATE TABLE dbo.SetupInfo (
-    InfoKey   varchar(40)   NOT NULL CONSTRAINT PK_SetupInfo PRIMARY KEY,
-    InfoValue nvarchar(200) NOT NULL,
-    SetAt     datetime2(0)  NOT NULL CONSTRAINT DF_SetupInfo DEFAULT (SYSUTCDATETIME())
-);
-INSERT dbo.SetupInfo (InfoKey, InfoValue)
-VALUES ('seed_complete', CONCAT('SalesDaily rows: ', (SELECT COUNT(*) FROM dbo.SalesDaily)));
 GO

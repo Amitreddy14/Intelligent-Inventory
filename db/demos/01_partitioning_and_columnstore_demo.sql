@@ -46,7 +46,7 @@ GO
 -- Seek on IX_Sales_Product_Warehouse_Date, no key lookup (all columns are INCLUDEd).
 SELECT SaleDate, Quantity, Revenue, PromoFlag
 FROM dbo.SalesDaily
-WHERE ProductId = 42 AND WarehouseId = 1 AND SaleDate >= '2026-07-01'
+WHERE ProductId = 42 AND WarehouseId = 4 AND SaleDate >= '2026-07-01'
 ORDER BY SaleDate;
 GO
 
