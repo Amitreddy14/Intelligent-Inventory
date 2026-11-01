@@ -51,6 +51,8 @@ GO
 -- ------------------------------------------------------------------ ABC (value) and XYZ (variability) classification
 -- ABC: products ordered by revenue; A = the products that make the first 80% of revenue, B = next 15%, C = rest.
 -- XYZ: coefficient of variation (stddev / mean) of WEEKLY units. X steady, Y moderate, Z erratic.
+-- Cut-offs (0.17 / 0.22) are set from this dataset's distribution (about a third of products in each class).
+-- Real data usually uses fixed business thresholds; they are easy to change here.
 CREATE OR ALTER VIEW dbo.vw_ABC_XYZ AS
 WITH rev AS (
     SELECT s.ProductId,
@@ -100,8 +102,8 @@ SELECT
     CASE WHEN cm.CumShareBefore < 0.80 THEN 'A'
          WHEN cm.CumShareBefore < 0.95 THEN 'B' ELSE 'C' END                         AS AbcClass,
     CAST(v.WeeklyCV AS decimal(6,3))                                                 AS WeeklyCV,
-    CASE WHEN v.WeeklyCV < 0.25 THEN 'X'
-         WHEN v.WeeklyCV < 0.40 THEN 'Y' ELSE 'Z' END                                AS XyzClass
+    CASE WHEN v.WeeklyCV < 0.17 THEN 'X'
+         WHEN v.WeeklyCV < 0.22 THEN 'Y' ELSE 'Z' END                                AS XyzClass
 FROM cum AS cm
 JOIN dbo.Product AS p ON p.ProductId = cm.ProductId
 LEFT JOIN variability AS v ON v.ProductId = cm.ProductId;

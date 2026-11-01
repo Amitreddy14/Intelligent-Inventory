@@ -1,5 +1,5 @@
 # Intelligent Inventory Control & Demand Forecasting Platform
-# Phase 1: SQL Server + one-shot initializer. API and web services arrive in Phases 3-4.
+# SQL Server, one-shot initializer, FastAPI backend and the React dashboard.
 
 services:
   db:
@@ -34,6 +34,33 @@ services:
     # tr strips Windows CR characters so the script runs even if git converted line endings
     entrypoint: ["/bin/bash", "-c", "tr -d '\\r' < /scripts/init.sh | bash"]
     restart: "no"
+
+  # FastAPI backend (Phase 3). Interactive docs at http://localhost:8000/docs
+  api:
+    build: ./api
+    container_name: inv-api
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      DB_SERVER: "db,1433"
+      DB_NAME: "InventoryDB"
+      DB_USER: "sa"
+      DB_PASSWORD: "${MSSQL_SA_PASSWORD:-Inventory@2026}"
+      JWT_SECRET: "${JWT_SECRET:-change-this-demo-secret-to-something-long-32+}"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  # React dashboard served by nginx (Phase 4). Open http://localhost:3000
+  web:
+    build: ./web
+    container_name: inv-web
+    depends_on:
+      - api
+    ports:
+      - "3000:80"
+    restart: unless-stopped
 
 volumes:
   sqldata:

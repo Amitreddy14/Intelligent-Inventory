@@ -129,6 +129,7 @@ GO
 
 -- ------------------------------------------------------------------ Procurement recommendations
 CREATE OR ALTER PROCEDURE dbo.usp_GenerateRecommendations
+    @Quiet bit = 0
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -207,11 +208,12 @@ BEGIN
         THROW;
     END CATCH;
 
-    SELECT Action, COUNT(*) AS Items, SUM(OrderQty) AS UnitsToOrder
-    FROM dbo.Recommendation
-    WHERE Status = 'OPEN'
-    GROUP BY Action
-    ORDER BY CASE Action WHEN 'ORDER' THEN 1 WHEN 'WATCH' THEN 2 ELSE 3 END;
+    IF @Quiet = 0
+        SELECT Action, COUNT(*) AS Items, SUM(OrderQty) AS UnitsToOrder
+        FROM dbo.Recommendation
+        WHERE Status = 'OPEN'
+        GROUP BY Action
+        ORDER BY CASE Action WHEN 'ORDER' THEN 1 WHEN 'WATCH' THEN 2 ELSE 3 END;
 END
 GO
 
