@@ -1,0 +1,39 @@
+# Intelligent Inventory Control & Demand Forecasting Platform
+# Phase 1: SQL Server + one-shot initializer. API and web services arrive in Phases 3-4.
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: inv-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Inventory@2026}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  # Runs every db/0*.sql script once, then exits. Skips itself if the database is already seeded.
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: inv-db-init
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Inventory@2026}"
+    volumes:
+      - ./db:/scripts:ro
+    # tr strips Windows CR characters so the script runs even if git converted line endings
+    entrypoint: ["/bin/bash", "-c", "tr -d '\\r' < /scripts/init.sh | bash"]
+    restart: "no"
+
+volumes:
+  sqldata:
